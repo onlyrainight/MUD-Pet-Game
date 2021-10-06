@@ -8,62 +8,60 @@ public class Dog extends Animal{
          * 基本屬性、生命狀態
          * 種類、喜愛裝飾
          */
-        setType(Animal.Type.DOG);
-        setFavoriteDecoration(Item.ItemType.WOODHOUSE);
+        animalType = Animal.AnimalType.DOG;
+        favoriteDecoration = Item.ItemType.WOODHOUSE;
         /**
          * 飢餓狀態
          * 食量、飢餓頻率、餓死步數、餵食時間、過飽狀態
          */
-        setConsumption(2);
-        setHungryFrequency(4);
-        setHungryTime(getHungryFrequency());
-        setHungry2DieLimit(4);
-        setEatable(Item.ItemType.CANNEDFOOD);
+        hungryNeedTime = 4;
+        hungryTime = hungryNeedTime;
+        hungry2DieLimit = 4;
+        eatableFood = Item.ItemType.CANNEDFOOD;
         /**
          * 排泄狀態
          * 排泄頻率、排泄數量、髒死步數
          */
-        setExcretionFrequency(3);
-        setDirty2DieLimit(5);
+        pooNeedTime = 3;
+        dirty2DieLimit = 5;
         /**
          * 無聊狀態
          * 無聊頻率、無聊死步數、
          */
-        setBoredFrequency(3);
-        setBored2DieLimit(6);
+        setBoredNeedTime(3);
+        bored2DieLimit = 6;
 
         /**
          * 連結狀態
          * 綑綁時間、對象、發情狀態
          */
-        setPregnantTime(2);
+        pregnantNeedTime = 2;
         /**
          * 睡眠狀態
          * 睡眠頻率、睡眠所需時間
          */
-        setSleepFrequency(7);
-        setSleepingTime(2);
+        wakeUpTime = 7;
+        wakeUpTime = 2;
         /**
          * 產出物品頻率
          */
-        setDropFrequency(5);
-        setItemList(Item.ItemType.DOGHAIR);
+        dropNeedTime = 5;
     }
 
 
 
     @Override
     public void specialConnect(Animal mate) {
-        switch (mate.getType()) {
+        switch (mate.animalType) {
             case CAT -> {
-                if (getBoredom() == Boredom.BORING || mate.getBoredom() == Boredom.BORING) {
+                if (boredom == Status.BORING || mate.boredom == Status.BORING) {
                     translateFeeling(1);
                 }
             }
             case INSECT -> {
-                if(getBoredom() == Boredom.BORING){
+                if(boredom == Status.BORING){
                     //昆蟲死亡
-                    mate.setStatus(Status.PLAYED2DIE);
+                    mate.status = Status.PLAYED2DIE;
                 }
             }
         }
@@ -77,5 +75,15 @@ public class Dog extends Animal{
     @Override
     public int getSellOutPrice() {
         return 10;
+    }
+
+    @Override
+    public Item genItem() {
+        return new Item.Builder()
+                .setSellPrice(2)
+                .setName("狗毛")
+                .setUsage("狗狗的毛，聽說可賣錢")
+                .setType(Item.ItemType.DOGHAIR)
+                .gen();
     }
 }

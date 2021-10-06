@@ -1,7 +1,7 @@
 package item;
 
 public class BufferItem extends Item {
-    private int buffNumber;
+    private final int buffNumber;
 
     public BufferItem(Builder builder, int buffNumber) {
         super(builder);

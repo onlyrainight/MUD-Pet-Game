@@ -2,7 +2,7 @@ package animal;
 
 public class Poo {
     private int startExcrete;
-    private int excretionFrequency;
+    private final int excretionFrequency;
 
     public Poo(int excretionFrequency) {
         this.excretionFrequency = excretionFrequency;

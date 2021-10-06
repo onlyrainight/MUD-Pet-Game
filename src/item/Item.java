@@ -22,19 +22,14 @@ public class Item {
         BAGADDING("背包格擴充物件"),
         ANIMALROOMADDING("寵物格擴充物件");
 
-        private String name;
+        private final String name;
 
         ItemType(String name) {
             this.name = name;
         }
-
-        public String getName() {
-            return name;
-        }
     }
 
     public static class Builder {
-        private int amount;
         private String name;
         private String usage;
         private ItemType type;
@@ -68,8 +63,7 @@ public class Item {
         }
 
         public Item gen() {
-            Item newItem = new Item(this);
-            return newItem;
+            return new Item(this);
         }
     }
 
@@ -88,10 +82,6 @@ public class Item {
 
     public int getAmount() {
         return amount;
-    }
-
-    public String getUsage() {
-        return usage;
     }
 
     public ItemType getType() {
