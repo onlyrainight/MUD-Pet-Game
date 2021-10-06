@@ -16,7 +16,7 @@ public class Cat extends Animal {
          * 睡眠狀態
          * 睡眠頻率、睡眠所需時間
          */
-        wakeUpTime = 8;
+        fallAsleepTime = 8;
         wakeUpTime = 4;
 
         /**

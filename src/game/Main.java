@@ -31,7 +31,7 @@ public class Main {
                     }
                     else {
                         System.out.println(player.getDropItem().description);
-                        Input.anotherDayMsg();
+                        GameStaticConstantAndFunction.anotherDayMsg();
                     }
                 }
                 case 2 -> {
@@ -58,6 +58,7 @@ public class Main {
                             Shop.showAnimalList();
                             System.out.println("請選擇您要購買的寵物");
                             Animal animal = Shop.genBuyingAnimal(Input.genAnimalType());
+                            animal.setGender(Animal.randomGender());
                             System.out.println(player.buyAnimal(animal).description);
                             break;
                         case 3:

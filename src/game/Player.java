@@ -352,7 +352,7 @@ public class Player {
         ActionReturn actionReturn = ActionReturn.NO_DROP;
         Item dropItem;
         for (Animal animal : animalRoom) {
-            dropItem = animal.drop();
+            dropItem = animal.countAndDrop();
             if (dropItem != null) {
                 if (addItem(dropItem, 1) != ActionReturn.NO_SPACE) {
                     actionReturn = ActionReturn.DROP;

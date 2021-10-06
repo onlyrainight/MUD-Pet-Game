@@ -164,7 +164,7 @@ public abstract class Animal {
         return ActionReturn.SUCCESSFUL;
     }
 
-    private void hungry() {
+    private void countHungry() {
         if (hasEat) {
             pooArr.add(new Poo(pooNeedTime));
             hasEat = false;
@@ -258,7 +258,7 @@ public abstract class Animal {
         return ActionReturn.SUCCESSFUL;
     }
 
-    public void randomEstrus() {
+    private void randomEstrus() {
         if ((int) (Math.random() * 2) == 0) {
             estrus = Status.ESTRUS;
         } else {
@@ -266,7 +266,7 @@ public abstract class Animal {
         }
     }
 
-    protected void countConnected() {
+    private void countConnected() {
         if (mate == null) {
             return;
         }
@@ -285,7 +285,7 @@ public abstract class Animal {
 
     protected abstract void specialConnect(Animal mate);
 
-    public void pregnant() {
+    private void pregnant() {
         if (!canPregnant()) {
             return;
         }
@@ -319,7 +319,7 @@ public abstract class Animal {
         }
     }
 
-    public void bored() {
+    private void countBoredom() {
         if (isSleep) {
             return;
         }
@@ -336,7 +336,7 @@ public abstract class Animal {
     /**
      * 操作掉落物
      */
-    public Item drop() {
+    public Item countAndDrop() {
         dropTime++;
         if (dropTime == dropNeedTime) {
             dropTime = 0;
@@ -348,8 +348,8 @@ public abstract class Animal {
     /**
      * 裝飾囉
      *
-     * @param decoration
-     * @return
+     * @param decoration 要裝的裝飾品
+     * @return 換下來的裝飾品
      */
     public Item setDecoration(Item decoration) {
         Item.ItemType tmp = decoration.getType();
@@ -368,7 +368,7 @@ public abstract class Animal {
      * 操作睡覺
      */
 
-    public void sleep() {
+    protected void sleep() {
         sleepTime++;// 每經過1個動作，啟動睡眠時間+1
 
         // 判斷是否進入睡眠狀態
@@ -378,9 +378,9 @@ public abstract class Animal {
     }
 
     public void update() {
-        hungry();
+        countHungry();
         checkPoo();
-        bored();
+        countBoredom();
         randomEstrus();
         countConnected();
         pregnant();
@@ -391,7 +391,7 @@ public abstract class Animal {
     /**
      * 其他
      *
-     * @return
+     * @return 狀態
      */
     public String toString() {
         StringBuilder str = new StringBuilder();
@@ -425,7 +425,7 @@ public abstract class Animal {
         str.append("  \t無聊:");
         str.append(boredom.description);
         str.append("\t骯髒程度:");
-        str.append(pooAmount + "/" + dirty2DieLimit);
+        str.append(pooAmount).append("/").append(dirty2DieLimit);
         str.append("\n");
         if (GameStaticConstantAndFunction.isDebug) {
             str.append("hungry:").append(hungryTime);
@@ -436,7 +436,7 @@ public abstract class Animal {
             str.append("\tpoo:");
             if (!pooArr.isEmpty()) {
                 for (Poo value : pooArr) {
-                    str.append(value + "\t");
+                    str.append(value).append("\t");
                 }
             }
             str.append("\n");
@@ -468,7 +468,7 @@ public abstract class Animal {
         this.gender = gender;
     }
 
-    public void translateFeeling(int x) {
+    protected void translateFeeling(int x) {
         this.feeling += x;
     }
 
@@ -479,11 +479,11 @@ public abstract class Animal {
     /**
      * 因為會受好感度影響，所以要另外計算
      */
-    public void setBoredNeedTime(int boredNeedTime) {
+    protected void setBoredNeedTime(int boredNeedTime) {
         this.boredNeedTime = boredNeedTime;
     }
 
-    public int getBoredNeedTime() {
+    protected int getBoredNeedTime() {
         if (feeling > 10) {
             return boredNeedTime + 2;
         }

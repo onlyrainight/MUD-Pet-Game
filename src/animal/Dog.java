@@ -40,7 +40,7 @@ public class Dog extends Animal{
          * 睡眠狀態
          * 睡眠頻率、睡眠所需時間
          */
-        wakeUpTime = 7;
+        fallAsleepTime = 7;
         wakeUpTime = 2;
         /**
          * 產出物品頻率

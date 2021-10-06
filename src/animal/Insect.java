@@ -17,7 +17,7 @@ public class Insect extends Animal {
          * 睡眠狀態
          * 睡眠頻率、睡眠所需時間
          */
-        wakeUpTime = -1;
+        fallAsleepTime = -1;
         wakeUpTime = -1;
 
         /**
@@ -59,8 +59,8 @@ public class Insect extends Animal {
     public void specialConnect(Animal mate) {
     }
 
-    @Override
     public void sleep() {
+
     }
 
     @Override

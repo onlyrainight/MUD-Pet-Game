@@ -44,18 +44,6 @@ public class Input {
         return name.toString();
     }
 
-    public static void anotherDayMsg() {
-        for (int i = 0; i < 3; i++) {
-            System.out.println(".");
-            try {
-                Thread.sleep(300);
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
-        }
-        System.out.println("又平安度過一天");
-    }
-
     public static Item.ItemType genItemType() {
         int choice = Input.genNumber(1,6);
         return switch (choice) {
