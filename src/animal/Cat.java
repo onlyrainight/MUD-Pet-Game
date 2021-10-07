@@ -62,21 +62,21 @@ public class Cat extends Animal {
         switch (mate.animalType) {
             // 貓跟狗放在一起，不論是狗或者貓進入無聊狀態時，好感度都會 -1
             case DOG -> {
-                if (boredom == Status.BORING || mate.boredom == Status.BORING) {
+                if (statusMap.get(AnimalAction.BOREDOM) == Status.BORED || mate.statusMap.get(AnimalAction.BOREDOM) == Status.BORED) {
                     translateFeeling(-1);
                 }
             }
             // 貓跟魚放在一起，當貓處於飢餓狀態時，則魚會死亡，貓會被餵食一次
             case FISH -> {
-                if (satiety == Status.STARVING) {
-                    mate.status = Status.EATEN2DIE;// 魚被吃死
-                    eat( Shop.genBuyingItem(Item.ItemType.CANNEDFOOD));// 貓被餵食
+                if (statusMap.get(AnimalAction.EAT) == Status.STARVING) {
+                    mate.statusMap.put(AnimalAction.LIVE, Status.EATEN2DIE);// 魚被吃死
+                    eat(Shop.genBuyingItem(Item.ItemType.CANNEDFOOD));// 貓被餵食
                 }
             }
             // 當貓與昆蟲放在一起時，當貓處於無聊狀態，則昆蟲會死亡，貓會被散步一次
             case INSECT -> {
-                if (boredom == Status.BORING) {
-                    mate.status = Status.PLAYED2DIE;// 昆蟲死亡
+                if (statusMap.get(AnimalAction.BOREDOM) == Status.BORED) {
+                    mate.statusMap.put(AnimalAction.LIVE, Status.PLAYED2DIE);// 昆蟲死亡
                     walk();// 貓散步
                 }
             }

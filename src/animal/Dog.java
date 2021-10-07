@@ -2,8 +2,8 @@ package animal;
 
 import item.Item;
 
-public class Dog extends Animal{
-    public Dog(){
+public class Dog extends Animal {
+    public Dog() {
         /**
          * 基本屬性、生命狀態
          * 種類、喜愛裝飾
@@ -49,19 +49,18 @@ public class Dog extends Animal{
     }
 
 
-
     @Override
     public void specialConnect(Animal mate) {
         switch (mate.animalType) {
             case CAT -> {
-                if (boredom == Status.BORING || mate.boredom == Status.BORING) {
+                if (statusMap.get(AnimalAction.BOREDOM) == Status.BORED || mate.statusMap.get(AnimalAction.BOREDOM) == Status.BORED) {
                     translateFeeling(1);
                 }
             }
             case INSECT -> {
-                if(boredom == Status.BORING){
+                if (statusMap.get(AnimalAction.BOREDOM) == Status.BORED) {
                     //昆蟲死亡
-                    mate.status = Status.PLAYED2DIE;
+                    mate.statusMap.put(AnimalAction.LIVE, Status.PLAYED2DIE);
                 }
             }
         }

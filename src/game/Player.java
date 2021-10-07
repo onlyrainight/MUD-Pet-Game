@@ -32,6 +32,7 @@ public class Player {
         BAG_FULL_DISCARD("背包已滿，物品已被丟棄"),
         DROP("有掉寶"),
         NOT_DECORATION("這不是裝飾品喔"),
+        PET_DIED("你的寵物掛了"),
         TIMES_GO_BY("\n");
 
         public String description;
@@ -220,19 +221,20 @@ public class Player {
         //是否擁有此物品
         if (theSameItem(item) == null) {
             return ActionReturn.NO_ITEM;
-        } else {
-            Item itemForSell = theSameItem(item);
-            //擁有此物品得數量是否足夠
-            if (amount > itemForSell.getAmount()) {
-                return ActionReturn.NO_AMOUNT;
-            } else {
-                //獲得販售的錢
-                addMoney(item.getSellPrice() * amount);
-                //扣除擁有的物品
-                itemAmountMinus(itemForSell, amount);
-                return ActionReturn.SUCCESSFUL;
-            }
         }
+
+        Item itemForSell = theSameItem(item);
+        //擁有此物品得數量是否足夠
+        if (amount > itemForSell.getAmount()) {
+            return ActionReturn.NO_AMOUNT;
+        } else {
+            //獲得販售的錢
+            addMoney(item.getSellPrice() * amount);
+            //扣除擁有的物品
+            itemAmountMinus(itemForSell, amount);
+            return ActionReturn.SUCCESSFUL;
+        }
+
     }
 
 
@@ -250,7 +252,7 @@ public class Player {
         if (index > animalRoom.size()) {
             return null;
         }
-        if (animalRoom.get(index - 1).status() != Animal.Status.ALIVE) {
+        if (animalRoom.get(index - 1).liveStatus() != Animal.Status.ALIVE) {
             return null;
         }
         return animalRoom.get(index - 1);
@@ -263,7 +265,7 @@ public class Player {
             addMoney(animal.getSellOutPrice());
             animalRoom.remove(animal);
         }
-        if (animal.status() != Animal.Status.ALIVE) {
+        if (animal.liveStatus() != Animal.Status.ALIVE) {
             return ActionReturn.DEAD_ANIMAL;
         }
         return ActionReturn.SUCCESSFUL;
@@ -336,8 +338,22 @@ public class Player {
             }
             case NEXT -> {
                 for (Animal animal : animalRoom) {
-                    if (animal.status() == Animal.Status.ALIVE) {
-                        animal.update();
+                    if (animal.liveStatus() != Animal.Status.ALIVE) {
+                        continue;
+                    }
+                    animal.update();
+
+                    //有生小孩才做以下事件
+                    if (!animal.isBorn()) {
+                        continue;
+                    }
+                    GameStaticConstantAndFunction.showBabyBorn();
+                    Animal newBorn = animal.genNewBorn();
+                    newBorn.setName(Input.namingWord());
+                    if (addAnimal(newBorn)) {
+                        return ActionReturn.TIMES_GO_BY;
+                    } else {
+                        return ActionReturn.NO_SPACE;
                     }
                 }
                 return ActionReturn.TIMES_GO_BY;
@@ -375,7 +391,7 @@ public class Player {
             return true;
         }
         for (Animal animal : animalRoom) {
-            if (animal.status() == Animal.Status.ALIVE) {  //有無死光
+            if (animal.liveStatus() == Animal.Status.ALIVE) {  //有無死光
                 return false;
             }
         }

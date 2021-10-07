@@ -14,7 +14,6 @@ public class Main {
 
         Animal initialAnimal = Shop.genBuyingAnimal(animalChoice);
         initialAnimal.setName(Input.namingWord());
-        initialAnimal.setGender(Animal.randomGender());
         System.out.println(initialAnimal.getName() + " 是" + initialAnimal.getGender().getDescription() + "喔!");
         player.addAnimal(initialAnimal);
 
@@ -27,7 +26,6 @@ public class Main {
                     Player.ActionReturn action = player.doSomething();
                     if (action != Player.ActionReturn.TIMES_GO_BY) {
                         System.out.println(action.description);
-                        continue;
                     }
                     else {
                         System.out.println(player.getDropItem().description);
@@ -46,38 +44,38 @@ public class Main {
                     System.out.println("1.購買道具  2.購買寵物  3.購買容量  4.販賣道具  5.販賣寵物");
                     int shopOption = Input.genNumber(1, 4);
                     switch (shopOption) {
-                        case 1:
+                        case 1 -> {
                             Shop.showItemList();
                             System.out.println("請選擇您要購買的道具");
                             Item buyItem = Shop.genBuyingItem(Input.genItemType());
                             System.out.println("請選擇您要購買的數量");
                             int amount = Input.buyAmount();
                             System.out.println(player.buyItem(buyItem, amount).description);
-                            break;
-                        case 2:
+                        }
+                        case 2 -> {
                             Shop.showAnimalList();
                             System.out.println("請選擇您要購買的寵物");
                             Animal animal = Shop.genBuyingAnimal(Input.genAnimalType());
-                            animal.setGender(Animal.randomGender());
                             System.out.println(player.buyAnimal(animal).description);
-                            break;
-                        case 3:
+                        }
+                        case 3 -> {
                             Shop.showBuffItemList();
                             System.out.println("請選擇您要購買的加成道具");
-                            Item buyingItem = Shop.genBuyingBuffItem(Input.genBuffItemType());
-                            System.out.println(player.buyBuffItem((BufferItem) buyingItem).description);
-                            break;
-                        case 4:
+                            BufferItem buyingItem = Shop.genBuyingBuffItem(Input.genBuffItemType());
+                            System.out.println(player.buyBuffItem(buyingItem).description);
+                        }
+                        case 4 -> {
                             System.out.println("請選擇您要販賣的道具");
                             Item sellItem = player.chooseItem();
                             System.out.println("請選擇您要販賣的數量");
                             int sellAmout = Input.genNumber(1, 99);
                             System.out.println(player.sell(sellItem, sellAmout).description);
-                            break;
-                        case 5:
+                        }
+                        case 5 -> {
                             System.out.println("請選擇您要販賣的寵物");
                             Animal sellAnimal = player.chooseAnimal();
                             System.out.println(player.sellAnimal(sellAnimal).description);
+                        }
                     }
                 }
             }

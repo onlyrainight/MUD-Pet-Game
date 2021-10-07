@@ -2,10 +2,13 @@ package animal;
 
 
 import game.GameStaticConstantAndFunction;
+import game.Input;
 import game.Player.ActionReturn;
+import game.Shop;
 import item.Item;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 
 public abstract class Animal {
     /**
@@ -14,13 +17,13 @@ public abstract class Animal {
      * 基本屬性、生命狀態
      * 名稱、種類、性別、好感度、喜愛裝飾
      */
-    protected Status status;
     protected String name;
     protected AnimalType animalType;
-    protected Status gender;
+    protected Gender gender;
     protected int feeling;
     protected Item.ItemType favoriteDecoration;
     protected Item decoration;
+    protected HashMap<AnimalAction, Status> statusMap;
 
     public enum AnimalType {
         DOG("狗勾"),
@@ -28,12 +31,27 @@ public abstract class Animal {
         FISH("魚兒"),
         INSECT("小蟲");
 
-        private String description;
+        private final String description;
 
         AnimalType(String description) {
             this.description = description;
         }
     }
+
+    public enum Gender {
+        MALE("男生"),
+        FEMALE("女生");
+        private final String description;
+
+        Gender(String description) {
+            this.description = description;
+        }
+
+        public String getDescription() {
+            return description;
+        }
+    }
+
 
     public enum Status {
         ALIVE("我思故我在"),
@@ -43,15 +61,18 @@ public abstract class Animal {
         BORED2DIE("無聊死"),
         PLAYED2DIE("被玩死"),
         EATEN2DIE("被吃死"),
-        MALE("男生"),
-        FEMALE("女生"),
         STARVING("飢餓狀態"),
         FULL("吃飽囉"),
         OVERFULL("快撐死"),
-        NORMAL("普通"),
-        BORING("無聊中"),
+        NORMAL("不飽也不餓"),
         MASTER("聖人模式"),
-        ESTRUS("咿咿喔喔");
+        ESTRUS("咿咿喔喔"),
+        AWAKE("醒著"),
+        SLEEPING("睡著中"),
+        BORED("無聊"),
+        NOT_BORED("不無聊"),
+        PREGNANT("懷孕中"),
+        BORN_BABY("生產");
 
         private final String description;
 
@@ -64,11 +85,18 @@ public abstract class Animal {
         }
     }
 
+    public enum AnimalAction {
+        EAT,
+        BOREDOM,
+        SEX,
+        SLEEP,
+        LIVE,
+    }
+
     /**
      * 飢餓狀態
      * 食量、飢餓頻率、餓死步數、餵食時間、過飽狀態
      */
-    protected Status satiety;
     protected int hungryTime;// 飢餓倒數
     protected int hungryNeedTime;
     protected int hungry2DieLimit;
@@ -87,7 +115,6 @@ public abstract class Animal {
      * 無聊狀態
      * 無聊頻率、無聊死步數、
      */
-    protected Status boredom;
     protected int boredTime;
     private int boredNeedTime;
     protected int bored2DieLimit;
@@ -100,7 +127,6 @@ public abstract class Animal {
     protected int pregnantNeedTime;
     protected int connectedTime;
     protected Animal mate;
-    protected Status estrus;
 
     /**
      * 睡眠狀態
@@ -119,21 +145,23 @@ public abstract class Animal {
 
     public Animal() {
         this.name = "尚未取名";
-        this.status = Status.ALIVE;
-        this.gender = Status.MALE;
+        this.gender = randomGender();
         this.feeling = 0;
-        this.satiety = Status.FULL;
         this.pooAmount = 0;
         this.boredTime = 0;
-        this.boredom = Status.NORMAL;
         this.connectedTime = 0;
         this.pregnantTime = 0;
-        this.estrus = Status.MASTER;
         this.dropTime = 0;
         this.sleepTime = 0;
         this.hungryTime = 0;
         this.isSleep = false;
         this.pooArr = new ArrayList<>();
+        this.statusMap = new HashMap<>();
+        statusMap.put(AnimalAction.LIVE, Status.ALIVE);
+        statusMap.put(AnimalAction.SLEEP, Status.AWAKE);
+        statusMap.put(AnimalAction.BOREDOM, Status.NOT_BORED);
+        statusMap.put(AnimalAction.EAT, Status.FULL);
+        statusMap.put(AnimalAction.SEX, Status.MASTER);
     }
 
     /**
@@ -143,7 +171,7 @@ public abstract class Animal {
 
     public ActionReturn eat(Item food) {
         // 若為睡眠狀態則不能吃
-        if (isSleep) {
+        if (statusMap.get(AnimalAction.SLEEP) == Status.SLEEPING) {
             return ActionReturn.SLEEPING;
         }
         // 不能吃就不能吃
@@ -151,50 +179,58 @@ public abstract class Animal {
             return ActionReturn.NOT_MY_FOOD;
         }
         // 判斷不同飽食度下進行餵食動作
-        switch (satiety) {// 飢餓狀態下吃
-            case STARVING, NORMAL ->// 正常狀態下吃
-                    hungryTime = hungryNeedTime;// 重製飢餓倒數時間為飢餓頻率
+        switch (statusMap.get(AnimalAction.EAT)) {// 飢餓狀態下吃
+            case STARVING, NORMAL -> {// 正常狀態下吃
+                hungryTime = hungryNeedTime;// 重製飢餓倒數時間為飢餓頻率
+                statusMap.put(AnimalAction.EAT, Status.FULL);
+            }
             case FULL -> {// 飽足狀態下吃 -> 進入過飽狀態
-                satiety = Status.OVERFULL;
+                statusMap.put(AnimalAction.EAT, Status.OVERFULL);
                 hungryTime = 2 * hungryNeedTime;// 飢餓倒數時間重製為過飽狀態下之飢餓倒數
             }
-            default -> status = Status.FULL2DIE;// 過飽狀態下吃 -> 死亡
+            default -> {
+                statusMap.put(AnimalAction.LIVE, Status.FULL2DIE);// 過飽狀態下吃 -> 死亡
+                return ActionReturn.PET_DIED;
+            }
         }
         hasEat = true;
         return ActionReturn.SUCCESSFUL;
     }
 
-    private void countHungry() {
+    private void countHungry() {  //需要覆寫
         if (hasEat) {
             pooArr.add(new Poo(pooNeedTime));
             hasEat = false;
             return;
         }
-        if (isSleep) {
+        if (statusMap.get(AnimalAction.SLEEP) == Status.SLEEPING) {
             return;
         }
-        hungryTime--;// 飢餓倒數
+
+        // 飢餓倒數
+        hungryTime--;
+
         // 飢餓倒數後更改狀態
-        switch (satiety) {
+        switch (statusMap.get(AnimalAction.EAT)) {
             case STARVING:// 飢餓狀態下未進食 -> 進入飢餓狀態n個動作後，則餓死
                 if (hungryTime == -(hungry2DieLimit)) {
-                    status = Status.HUNGRY2DIE;
+                    statusMap.put(AnimalAction.LIVE, Status.HUNGRY2DIE);
                 }
                 break;
             case NORMAL:// 正常狀態下未進食 -> 飢餓倒數為0時，進入飢餓狀態
                 if (hungryTime == 0) {
-                    satiety = Status.STARVING;
+                    statusMap.put(AnimalAction.EAT, Status.STARVING);
                 }
                 break;
             case FULL:// 飽足狀態(未到達飢餓頻率的1/2時(無條件捨去小數位後面數字)下未進食 -> 進入正常狀態
                 if (hungryTime < hungryNeedTime / 2) {
-                    satiety = Status.NORMAL;
+                    statusMap.put(AnimalAction.EAT, Status.NORMAL);
                 }
                 break;
             case OVERFULL:// 過飽狀態下未進食 -> 進入飽足狀態
             default:
                 if (hungryTime == hungryNeedTime) {
-                    satiety = Status.FULL;
+                    statusMap.put(AnimalAction.EAT, Status.FULL);
                 }
         }
 
@@ -215,7 +251,7 @@ public abstract class Animal {
         }
         if (pooAmount == dirty2DieLimit) {
             pooAmount = 0;
-            status = Status.DIRTY2DIE;
+            statusMap.put(AnimalAction.LIVE, Status.DIRTY2DIE);
         }
 
     }
@@ -251,18 +287,24 @@ public abstract class Animal {
         }
         //先重置伴侶狀態
         mate.pregnantTime = 0;
+        mate.statusMap.put(AnimalAction.SEX,Status.MASTER);
         mate.mate = null;
         //再重置自身狀態
         pregnantTime = 0;
+        statusMap.put(AnimalAction.SEX,Status.MASTER);
         mate = null;
         return ActionReturn.SUCCESSFUL;
     }
 
     private void randomEstrus() {
+        Status tmp = statusMap.get(AnimalAction.SEX);
+        if (tmp == Status.PREGNANT || tmp == Status.BORN_BABY){
+            return;
+        }
         if ((int) (Math.random() * 2) == 0) {
-            estrus = Status.ESTRUS;
+            statusMap.put(AnimalAction.SEX, Status.ESTRUS);
         } else {
-            estrus = Status.MASTER;
+            statusMap.put(AnimalAction.SEX, Status.MASTER);
         }
     }
 
@@ -280,7 +322,7 @@ public abstract class Animal {
         if (mate == null) {
             return false;
         }
-        return animalType == mate.animalType && gender != mate.gender && gender == Status.FEMALE;
+        return animalType == mate.animalType && gender != mate.gender && gender == Gender.FEMALE;
     }
 
     protected abstract void specialConnect(Animal mate);
@@ -290,19 +332,23 @@ public abstract class Animal {
             return;
         }
         //睡覺不給交配，但可懷孕
-        if (isSleep && pregnantTime == 0) {
+        if (statusMap.get(AnimalAction.SLEEP) == Status.SLEEPING && pregnantTime == 0) {
             return;
         }
         if (pregnantTime == 0) {
-            if (estrus == Status.ESTRUS) {
+            statusMap.put(AnimalAction.SEX,Status.PREGNANT);
+            if (statusMap.get(AnimalAction.SEX) == Status.ESTRUS) {
                 feeling++;
             } else {
                 feeling--;
             }
         }
         if (pregnantTime >= pregnantNeedTime) {
-            //寵物增加
+            Animal bornAnimal = Shop.genBuyingAnimal(animalType);
+            GameStaticConstantAndFunction.showBabyBorn();
+            bornAnimal.setName(Input.namingWord());
             pregnantTime = 0;
+            statusMap.put(AnimalAction.SEX,Status.BORN_BABY);
         }
         pregnantTime++;
     }
@@ -311,7 +357,7 @@ public abstract class Animal {
      * 操作無聊 散步
      */
     public ActionReturn walk() {
-        if (isSleep) {
+        if (statusMap.get(AnimalAction.SLEEP) == Status.SLEEPING) {
             return ActionReturn.SLEEPING;
         } else {
             boredTime = 0;
@@ -320,15 +366,15 @@ public abstract class Animal {
     }
 
     private void countBoredom() {
-        if (isSleep) {
+        if (statusMap.get(AnimalAction.SLEEP) == Status.SLEEPING) {
             return;
         }
         boredTime++;
         if (boredTime > getBoredNeedTime()) {
-            boredom = Status.BORING;
+            statusMap.put(AnimalAction.BOREDOM, Status.BORED);
         }
         if (boredTime == getBoredNeedTime() + bored2DieLimit) {
-            status = Status.BORED2DIE;
+            statusMap.put(AnimalAction.LIVE, Status.BORED2DIE);
         }
     }
 
@@ -372,19 +418,24 @@ public abstract class Animal {
         sleepTime++;// 每經過1個動作，啟動睡眠時間+1
 
         // 判斷是否進入睡眠狀態
-        isSleep = sleepTime % (fallAsleepTime + wakeUpTime) > fallAsleepTime ||
-                sleepTime % (fallAsleepTime + wakeUpTime) == 0;
+        if (sleepTime % (fallAsleepTime + wakeUpTime) > fallAsleepTime ||
+                sleepTime % (fallAsleepTime + wakeUpTime) == 0) {
+            statusMap.put(AnimalAction.SLEEP, Status.SLEEPING);
+        }
 
     }
 
     public void update() {
+        if(statusMap.get(AnimalAction.SEX) == Status.BORN_BABY){
+            statusMap.put(AnimalAction.SEX,Status.MASTER);
+        }
         countHungry();
         checkPoo();
         countBoredom();
         randomEstrus();
         countConnected();
-        pregnant();
         sleep();
+        pregnant();
     }
 
 
@@ -398,7 +449,7 @@ public abstract class Animal {
         str.append("種類:");
         str.append(animalType.description);
         str.append("狀態:");
-        str.append(status.description);
+        str.append(statusMap.get(AnimalAction.LIVE).description);
         str.append("\t名字:");
         str.append(name);
         str.append("\t性別:");
@@ -419,11 +470,11 @@ public abstract class Animal {
         }
         str.append("\n");
         str.append("\t飢餓狀態:");
-        str.append(satiety.description);
+        str.append(statusMap.get(AnimalAction.EAT).description);
         str.append("\t好感度:");
         str.append(feeling);
         str.append("  \t無聊:");
-        str.append(boredom.description);
+        str.append(statusMap.get(AnimalAction.BOREDOM).description);
         str.append("\t骯髒程度:");
         str.append(pooAmount).append("/").append(dirty2DieLimit);
         str.append("\n");
@@ -446,26 +497,23 @@ public abstract class Animal {
 
 
     protected static class Poo {
-        private int startExcrete;
-        private final int excretionFrequency;
 
-        public Poo(int excretionFrequency) {
-            this.excretionFrequency = excretionFrequency;
-            this.startExcrete = 0;
+        private int pooTime;
+        private final int pooNeedTime;
+
+        public Poo(int pooNeedTime) {
+            this.pooNeedTime = pooNeedTime;
+            pooTime = 0;
         }
 
         public boolean willExcrete() {
-            startExcrete++;
-            return startExcrete == excretionFrequency;
+            pooTime++;
+            return pooTime >= pooNeedTime;
         }
 
         public String toString() {
-            return Integer.toString(startExcrete);
+            return Integer.toString(pooTime);
         }
-    }
-
-    public void setGender(Status gender) {
-        this.gender = gender;
     }
 
     protected void translateFeeling(int x) {
@@ -493,11 +541,11 @@ public abstract class Animal {
         return boredNeedTime;
     }
 
-    public Status status() {
-        return status;
+    public Status liveStatus() {
+        return statusMap.get(AnimalAction.LIVE);
     }
 
-    public Status getGender() {
+    public Gender getGender() {
         return gender;
     }
 
@@ -513,12 +561,20 @@ public abstract class Animal {
 
     public abstract int getSellOutPrice();
 
-    public static Status randomGender() {
+    public static Gender randomGender() {
         if (Math.random() > 0.5) {
-            return Status.MALE;
+            return Gender.MALE;
         }
-        return Status.FEMALE;
+        return Gender.FEMALE;
     }
 
     public abstract Item genItem();
+
+    public boolean isBorn(){
+        return statusMap.get(AnimalAction.SEX) == Status.BORN_BABY;
+    }
+
+    public Animal genNewBorn(){
+        return Shop.genBuyingAnimal(animalType);
+    }
 }

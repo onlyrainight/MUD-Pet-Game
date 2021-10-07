@@ -18,6 +18,10 @@ public class GameStaticConstantAndFunction {
         System.out.println("請選擇你要使用的物品");
     }
 
+    public static void showBabyBorn() {
+        System.out.println("...\n...\n有寶寶誕生啦\n");
+    }
+
     public static void anotherDayMsg() {
         for (int i = 0; i < 3; i++) {
             System.out.println(".");

@@ -26,6 +26,11 @@ public class Shop {
         System.out.println("4.蟲 \t售價：10 ");
     }
 
+    /**
+     *
+     * @param itemType
+     * @return
+     */
     public static Item genBuyingItem(Item.ItemType itemType) {
         return switch (itemType) {
             case CANNEDFOOD -> new Item.Builder()
@@ -101,7 +106,6 @@ public class Shop {
             case CAT -> new Cat();
             case FISH -> new Fish();
             case INSECT -> new Insect();
-            default -> null;
         };
     }
 }
